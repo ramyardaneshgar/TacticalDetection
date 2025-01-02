@@ -3,16 +3,16 @@ By **Ramyar Daneshgar**
 
 ---
 
-This repository showcases a methodical approach to tactical threat detection, utilizing **Sigma rules**, **tripwires**, and **purple teaming** to strengthen detection mechanisms for **Indicators of Compromise (IOCs)** and **Indicators of Attack (IOAs)**. The focus is on implementing vendor-agnostic, actionable rules and leveraging adversary simulations to refine an organization’s security posture.
+#### **Description**  
+This LAB demonstrateD a methodical approach to tactical threat detection, utilizing **Sigma rules**, **tripwires**, and **purple teaming** to strengthen detection mechanisms for **Indicators of Compromise (IOCs)** and **Indicators of Attack (IOAs)**. Each step focuses on operationalizing threat intelligence, implementing proactive detection mechanisms, and refining SOC capabilities through adversary simulation and iterative improvement.
 
 ---
 
 ### **Walkthrough**
 
 #### **Unique Threat Intel**  
-The first step involved translating raw threat intelligence into actionable detection rules. This task focused on IOCs such as `bad3xe69connection.io` and related domains `kind4bad.com` and `nic3connection.io`. These domains were identified as malicious indicators based on prior incident data. The objective was to operationalize this intelligence by detecting unauthorized executable downloads originating from these domains.
+The first step involved translating raw threat intelligence into actionable detection rules. I encountered IOCs such as `bad3xe69connection.io` and related domains `kind4bad.com` and `nic3connection.io`. These were transformed into a **Sigma rule** to detect unauthorized executable downloads from the malicious domains:  
 
-To achieve this, I authored a Sigma rule:  
 ```yaml
 title: Executable Download from Suspicious Domains
 logsource:
@@ -29,15 +29,18 @@ detection:
 ```
 
 **Why This Matters**:  
-IOCs are foundational to modern detection strategies, representing traces of adversary activity. By encoding IOCs into structured, vendor-agnostic rules, they can be leveraged across multiple platforms (e.g., SIEMs like Elastic or Splunk) to detect re-infection attempts or malicious activity. This enhances threat visibility without the need to reinvent the wheel for every tool in the stack.
+IOCs are critical for detecting and responding to adversary activity. By encoding them into structured detection rules, I ensured compatibility across SIEM platforms and enabled proactive identification of malicious activity. This step reinforces the importance of turning passive intelligence into actionable capabilities.
+
+**Lessons Learned**:  
+- Understanding IOC relationships (e.g., associated domains) enhances detection accuracy.
+- Vendor-agnostic formats like Sigma streamline implementation across diverse tools.
 
 ---
 
 #### **Publicly Generated IOCs**  
-In this step, I worked with community-provided Sigma rules for two significant vulnerabilities: **Follina-MSDT (CVE-2022-30190)** and **Log4j**. These rules encapsulate known adversary behaviors, enabling proactive detection.
+This task focused on leveraging public Sigma rules for two vulnerabilities: **Follina-MSDT (CVE-2022-30190)** and **Log4j**. Using **Uncoder**, I translated Sigma rules into platform-specific queries. For example:  
 
-- **Follina-MSDT Rule**:  
-  This rule focused on detecting suspicious executions of `msdt.exe`, a process often exploited via malicious Office documents.  
+- **Follina-MSDT Rule** (detecting suspicious `msdt.exe` executions):  
   ```yaml
   title: Suspicious msdt.exe execution - Office Exploit
   detection:
@@ -50,43 +53,38 @@ In this step, I worked with community-provided Sigma rules for two significant v
     condition: selection1 and selection2
   ```
 
-- **Log4j Rule**:  
-  Designed to identify suspicious shell executions spawned by Java processes, which are indicative of Log4j exploitation.  
-
-Using **Uncoder**, I transformed these Sigma rules into SIEM-specific queries, such as this Elastic Stack filter for Follina:  
-```json
-{
-  "filter": {
-    "term": { "process.name": "msdt.exe" }
+- **Elastic Stack Query** (transformed Sigma rule):  
+  ```json
+  {
+    "filter": {
+      "term": { "process.name": "msdt.exe" }
+    }
   }
-}
-```
+  ```
 
 **Why This Matters**:  
-Public IOCs allow organizations to leverage collective threat intelligence, reducing time-to-detection for emerging vulnerabilities. Translating these rules into platform-specific queries ensures compatibility while enabling rapid deployment. This step highlights the importance of continuously updating detection mechanisms based on new threat intelligence.
+Leveraging public IOCs reduces the time required to address emerging threats. Translating these rules ensures alignment with the organization’s tools, creating actionable alerts that enhance detection speed and precision.
 
-**Key Command**:  
-```bash
-python uncoder.py --input sigma_rule.yml --output elasticsearch
-```
+**Lessons Learned**:  
+- Community-driven IOCs provide a foundation for rapid detection against known threats.
+- Rules require tuning to align with specific environments, minimizing false positives.
 
 ---
 
 #### **Tripwires**  
-Tripwires are a proactive detection mechanism, often deployed to monitor sensitive files or directories. For this task, I created a file named **“Secret Document”** and configured it as a high-fidelity indicator by enabling auditing to log all access attempts.
+Tripwires were implemented to detect unauthorized access to sensitive assets. I created a file, **“Secret Document”**, and configured auditing to log all access attempts:  
 
 1. **Configure Auditing**:  
-   - Enabled **Audit Object Access** via `gpedit.msc` to capture both successful and failed file access attempts.  
+   - Enabled **Audit Object Access** via `gpedit.msc`, logging both successful and failed access attempts.  
 
-2. **Apply Tripwire to the Target File**:  
-   - Right-clicked on the file → `Properties > Security > Advanced > Auditing`.  
-   - Configured auditing for **all users** to track **Read** and **Write** actions.
+2. **Apply File-Specific Auditing**:  
+   - Configured the file to monitor **Read** and **Write** actions for all users.  
 
 3. **Monitor Logs**:  
-   - Used Event Viewer to analyze:
-     - **Event ID 4663**: Logged access attempts.
-     - **Event ID 4656**: Handle requests.
-     - **Event ID 4658**: Handle closures.
+   - Event Viewer tracked relevant Event IDs:  
+     - **4663**: File access attempts.  
+     - **4656**: Handle requested.  
+     - **4658**: Handle closure.  
 
 **Command to Simulate Access**:  
 ```cmd
@@ -94,19 +92,34 @@ type "C:\Users\Administrator\Desktop\Secret Document.txt"
 ```
 
 **Why This Matters**:  
-Tripwires create "high-value" detection opportunities by targeting assets that should never be accessed under normal conditions. This strategy minimizes noise while increasing the likelihood of detecting unauthorized activity, such as insider threats or lateral movement by adversaries.
+Tripwires act as high-fidelity detection mechanisms, providing focused monitoring with minimal noise. They are particularly effective for detecting lateral movement or insider threats targeting critical assets.
+
+**Lessons Learned**:  
+- Tripwires are invaluable for detecting “unknown unknowns,” where standard rules might fail.
+- Consolidating sensitive files into monitored folders simplifies auditing and analysis.
 
 ---
 
 #### **Purple Teaming**  
-Purple teaming integrates offensive (red team) tactics with defensive (blue team) strategies to assess and refine detection capabilities. By simulating real-world attack scenarios, I validated the effectiveness of the detection rules and identified gaps in visibility.
+Purple teaming integrated offensive tactics with defensive measures, allowing me to validate detection mechanisms through simulated attacks:  
 
-- **Tempest Room**:  
-  Simulated an attack chain from start to finish, collecting logs and artifacts for analysis. This exercise demonstrated how adversarial actions appear in system logs, helping refine detection rules.
+1. **Tempest Room**:  
+   Simulated a complete attack chain, analyzing logs to identify detection gaps and refine rules.  
 
-- **Follina-MSDT Room**:  
-  Focused on the exploitation of CVE-2022-30190. Logs from this simulation were analyzed to identify opportunities for improving detection coverage.
+2. **Follina-MSDT Room**:  
+   Focused on exploiting CVE-2022-30190, capturing artifacts to improve rule specificity and reliability.
 
 **Why This Matters**:  
-Purple teaming shifts the focus from passive monitoring to active validation. It ensures that detection mechanisms align with adversary TTPs (Tactics, Techniques, and Procedures) and provides a feedback loop for continuous improvement.
+Adversary simulations test the efficacy of detection mechanisms against real-world tactics, techniques, and procedures (TTPs). This iterative process enhances visibility, response capabilities, and overall security posture.
 
+**Lessons Learned**:  
+- Purple teaming bridges the gap between offense and defense, highlighting areas for improvement.  
+- Simulated attacks validate existing detections while identifying gaps that might otherwise go unnoticed.
+
+---
+
+### **Key Lessons Learned**  
+1. **Proactive Detection is Essential**: Default rules provide a baseline, but tailored detection mechanisms ensure actionable insights.  
+2. **Collaborate on Intelligence**: Leveraging community-driven IOCs accelerates detection against emerging threats.  
+3. **Deploy Focused Monitoring**: Tripwires add depth to detection strategies, providing early warning for critical asset access.  
+4. **Continuously Test and Improve**: Purple teaming validates detections and uncovers gaps, driving iterative improvements in SOC capabilities.
