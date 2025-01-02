@@ -1,5 +1,5 @@
 ### THM-TacticalDetection: Writeup for TryHackMe Tactical Detection  
-By **Ramyar Daneshgar**
+ ** By Ramyar Daneshgar**
 
 ---
 
