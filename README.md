@@ -9,7 +9,7 @@ Writeup for TryHackMe Tactical Detection - leveraging Sigma rules, tripwires, an
 ---
 
 #### **Description**  
-This LAB demonstrateD a methodical approach to tactical threat detection, utilizing **Sigma rules**, **tripwires**, and **purple teaming** to strengthen detection mechanisms for **Indicators of Compromise (IOCs)** and **Indicators of Attack (IOAs)**. Each step focuses on operationalizing threat intelligence, implementing proactive detection mechanisms, and refining SOC capabilities through adversary simulation and iterative improvement.
+This lab demonstrated a methodical approach to tactical threat detection, utilizing **Sigma rules**, **tripwires**, and **purple teaming** to strengthen detection mechanisms for **Indicators of Compromise (IOCs)** and **Indicators of Attack (IOAs)**. Each step focuses on operationalizing threat intelligence, implementing proactive detection mechanisms, and refining SOC capabilities through adversary simulation and iterative improvement.
 
 ---
 
