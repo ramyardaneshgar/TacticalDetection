@@ -37,7 +37,7 @@ detection:
 IOCs are critical for detecting and responding to adversary activity. By encoding them into structured detection rules, I ensured compatibility across SIEM platforms and enabled proactive identification of malicious activity. This step reinforces the importance of turning passive intelligence into actionable capabilities.
 
 **Lessons Learned**:  
-- Understanding IOC relationships (e.g., associated domains) enhances detection accuracy.
+- Understanding IOC relationships (associated domains) enhances detection accuracy.
 - Vendor-agnostic formats like Sigma streamline implementation across diverse tools.
 
 ---
